@@ -1,0 +1,455 @@
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" 
+        rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" 
+        crossorigin="anonymous">
+
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+        <script src='https://kit.fontawesome.com/a076d05399.js'></script>
+
+        <script src="https://unpkg.com/vue-router@2.0.0"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <style>
+        .sidenav {
+            height: 100%;
+            width: 160px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #C4F4F3;
+            overflow-x: hidden;
+            padding-top: 20px;
+          }
+          
+          .sidenav a {
+            padding: 6px 8px 6px 16px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+          }
+          
+          .sidenav a:hover {
+            color: #5c1fce;
+          }
+          .has-search .form-control {
+    padding-left: 2.375rem;
+}
+
+.has-search .form-control-feedback {
+    position: absolute;
+    z-index: 2;
+    display: block;
+    width: 2.375rem;
+    height: 2.375rem;
+    line-height: 2.375rem;
+    text-align: center;
+    pointer-events: none;
+    color: #aaa;
+}
+
+
+      
+          </style>
+
+          
+    </head>
+    <body>
+        <script type="module">
+           var app = new Vue({
+  el: '#app',
+  data: {
+   
+    checkedNames:[],
+    booksData:[],
+    booksDataCopy:[],
+    startIndex:0,
+    endIndex:7,
+    pageno:1,
+ disable:true,
+  
+    betBlock:false,
+  
+    pages:0,
+    searchText:'',
+    userName:'',
+    totalPrice:0
+   
+  
+  },
+  methods:{
+
+   
+
+sort(evnt, sortableValue){
+  var sortTypeVal = evnt.target.getAttribute("data-type");
+
+   this.booksDataCopy.sort((a, b) => a[sortableValue] !== b[sortableValue] ? 
+   (sortTypeVal == 'ASC' ? a[sortableValue] < b[sortableValue] 
+   : a[sortableValue] > b[sortableValue]) ? -1 : 1 : 0);
+sortTypeVal == "ASC" ? evnt.target.setAttribute("data-type", "DESC") : 
+evnt.target.setAttribute("data-type", "ASC")
+},
+checkout(){
+ this.betBlock=true;
+ for(var i=0;i<this.checkedNames.length;i++){
+                this.totalPrice+=this.checkedNames[i].price;
+           }
+           this.totalPrice=this.totalPrice-150
+ 
+},
+checkBox(data,event){
+           console.log(this.checkedNames)
+           this.checkedNames.push(data)
+           
+         
+          
+        },
+        back(){
+          this.betBlock=false;
+        },
+        searchingUser(){
+          console.log(this.userName)
+          var text=this.userName.replace(/[^a-zA-z]/g,'')
+          var data=this.booksData.slice(this.startIndex,this.endIndex)
+          if(this.userName!=''){
+         this.booksDataCopy=this.booksData.filter(d => d.authors.toLowerCase().match(text.toLowerCase()));  
+         this.booksDataCopy.push(this.booksData.filter(d => d.title.match(text.toLowerCase())));
+     //  this.booksDataCopy.push(this.booksData.filter(d => d.title.slice(0,d.title.indexOf('(')).toLowerCase().search(this.userName.toLowerCase())));    
+          }
+          else{
+            this.booksDataCopy=data;
+          }
+          
+        },
+        showTable(x){
+               if(x=='pre'){
+               
+                   this.endIndex=this.startIndex-1;
+                   this.startIndex=this.endIndex-7;
+                   this.pageno-=1
+                 
+               }
+               else{
+                 this.startIndex=this.endIndex+1;
+                 this.endIndex=this.startIndex+7;
+                 this.pageno+=1
+               }
+               this.booksDataCopy=this.booksData.slice(this.startIndex,this.endIndex+1);
+             
+              
+        },
+      //   getRating(){
+      //     for(var i=0;i<this.booksDataCopy.length;i++){
+      //      var r=this.booksDataCopy[i].average_rating;
+      //      const starPercentage = (r / 5) * 100;
+      //   const starPercentageRounded = `${Math.round(starPercentage / 10) * 10}%`;
+      // var a= document.getElementById(this.booksDataCopy[i].bookID)
+      //  var b=a.querySelector('.stars-inner');
+      // a.style.width = starPercentageRounded;
+      //    }
+      //   }
+
+  },
+  computed:{
+    
+  },
+ 
+  mounted(){
+      axios.get('https://s3-ap-southeast-1.amazonaws.com/he-public-data/books8f8fe52.json')
+      .then(res =>{ this.booksData=res.data;
+        this.booksDataCopy=this.booksData.slice(0,8)
+      
+        this.pages=Math.round(this.booksData.length/8)
+    
+    
+      
+      }
+      );
+     
+      
+  }
+})
+        </script>
+        
+
+        <div id="app">
+          <!-- check out page -->
+          <div class="row" v-if="betBlock">
+            <div class="col-md-4  mb-4 ml-5 pl-5">
+                <h4 class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Your cart</span>
+                    <span class="badge badge-secondary badge-pill" style="color: #5c1fce;">{{checkedNames.length}}</span>
+                </h4>
+                <ul class="list-group mb-3 sticky-top">
+                    <li class="list-group-item d-flex justify-content-between lh-condensed" v-for="(item, index) in checkedNames">
+                        <div>
+                            <h7 class="my-0"><i class='fa fa-book' style='color:#5c1fce;'></i>{{item.title}}</h7>&nbsp;
+                            <i style="color: goldenrod;" class="fas fa-star"></i>{{item.average_rating}}
+                            <small class="text-muted"> <i style="color: rgb(48, 9, 121);" class="fas fa-pen"></i>{{item.authors}}</small>
+                        </div>
+                        <span class="text-muted">Rs:{{item.price}}</span>
+                    </li>
+                   
+                    <li class="list-group-item d-flex justify-content-between bg-light">
+                        <div class="text-success">
+                            <h6 class="my-0">Promo code</h6>
+                            <small>EXAMPLECODE</small>
+                        </div>
+                        <span class="text-success">-RS 150</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Total (AMOUNT)</span>
+                        <strong>{{totalPrice}}</strong>
+                    </li>
+                  
+                </ul>
+                <form class="card p-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Promo code">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-secondary">Redeem</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                  <div class="col-1"></div>
+               <button type="button" @click="back"  class="btn btn-primary mt-1  mr-2 col-2">Back</button>
+              </div>
+            </div>
+            <div class="col-md-8 ">
+                <h4 class="mb-3">Billing address</h4>
+                <form class="needs-validation" novalidate="">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName">First name</label>
+                            <input type="text" class="form-control" id="firstName" placeholder="" value="" required="">
+                            <div class="invalid-feedback"> Valid first name is required. </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName">Last name</label>
+                            <input type="text" class="form-control" id="lastName" placeholder="" value="" required="">
+                            <div class="invalid-feedback"> Valid last name is required. </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username">Username</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">@</span>
+                            </div>
+                            <input type="text" class="form-control" id="username" placeholder="Username" required="">
+                            <div class="invalid-feedback" style="width: 100%;"> Your username is required. </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email">Email <span class="text-muted">(Optional)</span></label>
+                        <input type="email" class="form-control" id="email" placeholder="you@example.com">
+                        <div class="invalid-feedback"> Please enter a valid email address for shipping updates. </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address">Address</label>
+                        <input type="text" class="form-control" id="address" placeholder="1234 Main St" required="">
+                        <div class="invalid-feedback"> Please enter your shipping address. </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address2">Address 2 <span class="text-muted">(Optional)</span></label>
+                        <input type="text" class="form-control" id="address2" placeholder="Apartment or suite">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5 mb-3">
+                            <label for="country">Country</label>
+                            <select class="custom-select d-block w-100" id="country" required="">
+                                <option value="">Choose...</option>
+                                <option>United States</option>
+                            </select>
+                            <div class="invalid-feedback"> Please select a valid country. </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="state">State</label>
+                            <select class="custom-select d-block w-100" id="state" required="">
+                                <option value="">Choose...</option>
+                                <option>California</option>
+                            </select>
+                            <div class="invalid-feedback"> Please provide a valid state. </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="zip">Zip</label>
+                            <input type="text" class="form-control" id="zip" placeholder="" required="">
+                            <div class="invalid-feedback"> Zip code required. </div>
+                        </div>
+                    </div>
+                    <hr class="mb-4">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="same-address">
+                        <label class="custom-control-label" for="same-address">Shipping address is the same as my billing address</label>
+                    </div>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="save-info">
+                        <label class="custom-control-label" for="save-info">Save this information for next time</label>
+                    </div>
+                    <hr class="mb-4">
+                    <h4 class="mb-3">Payment</h4>
+                    <div class="d-block my-3">
+                        <div class="custom-control custom-radio">
+                            <input id="credit" name="paymentMethod" type="radio" class="custom-control-input" checked="" required="">
+                            <label class="custom-control-label" for="credit">Credit card</label>
+                        </div>
+                        <div class="custom-control custom-radio">
+                            <input id="debit" name="paymentMethod" type="radio" class="custom-control-input" required="">
+                            <label class="custom-control-label" for="debit">Debit card</label>
+                        </div>
+                        <div class="custom-control custom-radio">
+                            <input id="paypal" name="paymentMethod" type="radio" class="custom-control-input" required="">
+                            <label class="custom-control-label" for="paypal">PayPal</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cc-name">Name on card</label>
+                            <input type="text" class="form-control" id="cc-name" placeholder="" required="">
+                            <small class="text-muted">Full name as displayed on card</small>
+                            <div class="invalid-feedback"> Name on card is required </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cc-number">Credit card number</label>
+                            <input type="text" class="form-control" id="cc-number" placeholder="" required="">
+                            <div class="invalid-feedback"> Credit card number is required </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="cc-expiration">Expiration</label>
+                            <input type="text" class="form-control" id="cc-expiration" placeholder="" required="">
+                            <div class="invalid-feedback"> Expiration date required </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="cc-cvv">CVV</label>
+                            <input type="text" class="form-control" id="cc-cvv" placeholder="" required="">
+                            <div class="invalid-feedback"> Security code required </div>
+                        </div>
+                    </div>
+                    <hr class="mb-4">
+                    <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to checkout</button>
+                </form>
+            </div>
+        </div>
+        <footer v-if="betBlock" class="my-5 pt-5 text-muted text-center text-small">
+            <p class="mb-1">© 2017-2019 <img alt="ECS"
+                 src="https://he-s3.s3.amazonaws.com/media/cache/61/73/61736cd9a65bded0bd0afabcbf886693.png">    
+           <ul class="list-inline">
+                <li class="list-inline-item"><a href="#">Privacy</a></li>
+                <li class="list-inline-item"><a href="#">Terms</a></li>
+                <li class="list-inline-item"><a href="#">Support</a></li>
+            </ul>
+        </footer>
+    
+     
+           
+       <!-- sidenav and box div -->
+            <div class="row" v-if="!betBlock">
+              <!-- sidenav -->
+            <div id="sidenav" class="col-md-2" style="background-color: rgb(222, 223, 228);height: 100vw;">
+                <i class='fa fa-book' style='font-size:48px;color:#5c1fce;margin-left: 30%;margin-top: 3%;'></i>
+                <div class="media mt-2" v-for="(item, index) in checkedNames">
+                  <div class="media-left ml-2" >
+                   
+                   <span style="font-family: 'Times New Roman', Times, serif;"> {{item.title}}&nbsp;
+                    <i style="color: goldenrod;" class="fa fa-money"></i>{{item.price}}</span>&nbsp;
+                    <i class="fa fa-star" style="color: goldenrod;"></i>{{item.average_rating}} &nbsp;
+                  </div>
+              
+                  <div class="media-body mt-2 ml-2">
+                    <i style="color: goldenrod;" class="fas fa-pen"></i>{{item.authors}}
+                   
+                    
+                  </div>
+                </div>
+            
+                  <div class="row" >
+                <div class="col-2"></div>
+                  <button v-if="checkedNames.length >0" type="button" @click="checkout()" style="color: #e5e3e9; background-color: #5c1fce;"
+                  class="btn btn-info ml-4 col-md-8 mt-2 text-center vertical-center">
+                    CHECKOUT</button><div class="col-2"></div>
+                  </div>
+            </div>
+          
+            <!-- box _table -->
+          <div id="box" class="col-10">
+              <span style="color: #5c1fce;"><h5>Search By Author Or Title</h5></span>
+             
+              
+              <div class="d-flex justify-content-between">
+              <div class="form-group has-search col-4 mb-3 mt-3">
+                <span class="fa fa-search form-control-feedback"></span>
+                <input type="text" class="form-control" v-model="userName" @input="searchingUser()" placeholder="Search">
+              </div>
+              <div class="btn-group col-2" role="group" aria-label="Basic example">
+               
+   <i class="fas fa-angle-left fa-3x" v-if="startIndex!=0 && pageno <=pages" @click="showTable('pre')"></i>
+                 <i class="fas fa-angle-right fa-3x" v-if="pageno <pages" @click="showTable('next')"></i>
+            </div>
+            </div>
+
+             
+                  <div class="table-responsive">
+                    <table class="table table-responsive d-md-table border">
+                      <thead>
+                        <tr>
+                            <th scope="col-1" class="text-nowrap"> SELECT</th>
+                            <th scope="col-1" class="text-nowrap"> BOOK_ID</th>
+                        <th scope="col-5" class="text-nowrap">TITLE</th>
+                        <th scope="col-1" class="text-nowrap">AUTHORS</th>
+                        <th scope="col-1" class="text-nowrap">ISBN</th>
+                        <th scope="col-1" class="text-nowrap">
+                            AVERAGE_RATING  <i class="fas fa-sort cursor-pointer" 
+                          title="Sort" @click="sort($event,'average_rating')" data-type="ASC"></i>
+                        </th>
+                        <th scope="col-1" class="text-nowrap">LANGUAGE_CODE</th>
+                        <th scope="col-1" class="text-nowrap">RATINGS_COUNT</th>
+                        <th scope="col-1" class="text-nowrap">PRICE
+                          <i class="fas fa-sort cursor-pointer" 
+                          title="Sort" @click="sort($event,'price')" data-type="ASC"></i>
+                        </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(item, index) in booksDataCopy" :key="index" :value=item  @click="checkBox(item,$event)">
+                          <td class="align-middle"  width="5%">
+                            <div>
+                            <input type="checkbox" :disabled="disable" :id="index" :value=item v-model="checkedNames" 
+                            @change="checkBox(item,$event)">
+                            </div>
+                        </td>
+                        
+                        <td class="align-middle" width="10%">{{item.bookID}}</td>
+                        <td class="align-middle" width="10%">{{item.title}}</td>
+                        
+                        
+                        <td class="align-middle" width="10%">{{item.authors}}</td>
+                        <td class="align-middle" width="10%">{{item.isbn}}</td>
+                        <td class="align-middle" width="10%">
+                         
+                          <span class="number-rating">  {{item.average_rating}}</span></td>
+
+                        <td class="align-middle" width="10%">{{item.language_code}}</td>
+                        <td class="align-middle" width="10%">{{item.ratings_count}}</td>
+                        <td class="align-middle" width="10%">{{item.price}}</td>
+                        
+
+                        </tr>
+                      </tbody>
+                    </table>
+                   
+                  </div>
+                 
+            </div>
+          </div>
+        </div>
+        
+         
+    </body>
+</html>
